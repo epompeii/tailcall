@@ -1,0 +1,35 @@
+name: Benchmark main
+
+on:
+  push:
+    paths-ignore: ["docs/**", "**.md"]
+    branches:
+      - bencher_main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  micro_benchmarks:
+    name: Micro Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install Bencher CLI
+        uses: bencherdev/bencher@main
+
+      - name: Run Benchmarks
+        run: |
+          bencher run \
+          --project tailcall \
+          --branch bencher_main \
+          --testbed ubuntu-latest \
+          --token "${{ secrets.BENCHER_API_TOKEN }}" \
+          --adapter rust_criterion \
+          cargo bench
